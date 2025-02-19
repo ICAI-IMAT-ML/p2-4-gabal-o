@@ -65,10 +65,14 @@ class LinearRegressor:
             None: Modifies the model's coefficients and intercept in-place.
         """
         # Replace this code with the code you did in the previous laboratory session
-
-        # Store the intercept and the coefficients of the model
-        self.intercept = None
-        self.coefficients = None
+                # Add a column of ones to X for the intercept term
+        
+        # Compute the coefficients using the normal equation
+        theta = np.linalg.inv(X.T @ X) @ X.T @ y
+        
+        # Store intercept and coefficients separately
+        self.intercept = theta[0]
+        self.coefficients = theta[1:]
 
     def fit_gradient_descent(self, X, y, learning_rate=0.01, iterations=1000):
         """
@@ -83,27 +87,34 @@ class LinearRegressor:
         Returns:
             None: Modifies the model's coefficients and intercept in-place.
         """
-
-        # Initialize the parameters to very small values (close to 0)
         m = len(y)
-        self.coefficients = (
-            np.random.rand(X.shape[1] - 1) * 0.01
-        )  # Small random numbers
+    
+        # Initialize parameters to small random values.
+        # Since X includes a bias column, we only need to initialize coefficients for the other features.
+        self.coefficients = np.random.rand(X.shape[1] - 1) * 0.01  # shape: (n_features,)
         self.intercept = np.random.rand() * 0.01
 
-        # Implement gradient descent (TODO)
         for epoch in range(iterations):
-            predictions = None
+            # Compute predictions using the current parameters.
+            # We assume that the first column of X is the bias (all ones) and is not used here.
+            predictions = self.intercept + np.dot(X[:, 1:], self.coefficients)
+            
+            # Compute error (difference between predictions and true values).
             error = predictions - y
 
-            # TODO: Write the gradient values and the updates for the paramenters
-            gradient = None
-            self.intercept -= None
-            self.coefficients -= None
+            # Compute the gradient for the intercept (bias) term.
+            intercept_gradient = (1 / m) * np.sum(error)
+            
+            # Compute the gradient for the coefficients (for each feature).
+            coefficients_gradient = (1 / m) * np.dot(X[:, 1:].T, error)
 
-            # TODO: Calculate and print the loss every 10 epochs
-            if epoch % 1000 == 0:
-                mse = None
+            # Update the parameters by taking a step in the opposite direction of the gradient.
+            self.intercept -= learning_rate * intercept_gradient
+            self.coefficients -= learning_rate * coefficients_gradient
+
+            # Optionally, calculate and print the loss every 10 epochs.
+            if epoch % 10 == 0:
+                mse = (1 / m) * np.sum(error ** 2)
                 print(f"Epoch {epoch}: MSE = {mse}")
 
     def predict(self, X):
@@ -122,11 +133,14 @@ class LinearRegressor:
         """
 
         # Paste your code from last week
-
         if self.coefficients is None or self.intercept is None:
             raise ValueError("Model is not yet fitted")
-
-        return None
+        X = np.asarray(X)
+        if np.ndim(X) == 1:
+            predictions = X*self.coefficients + self.intercept
+        else:
+            predictions = np.dot(X, self.coefficients) + self.intercept
+        return predictions
 
 
 def evaluate_regression(y_true, y_pred):
@@ -140,18 +154,18 @@ def evaluate_regression(y_true, y_pred):
     Returns:
         dict: A dictionary containing the R^2, RMSE, and MAE values.
     """
-
     # R^2 Score
-    # TODO
-    r_squared = None
-
+    # TODO: Calculate R^2
+    ss_res = np.sum((y_true - y_pred)**2)
+    ss_tot = np.sum((y_true - np.mean(y_true))**2)
+    r_squared = 1 - (ss_res / ss_tot)
     # Root Mean Squared Error
-    # TODO
-    rmse = None
+    # TODO: Calculate RMSE
+    rmse = np.sqrt(np.mean((y_true-y_pred)**2))
 
     # Mean Absolute Error
-    # TODO
-    mae = None
+    # TODO: Calculate MAE
+    mae = np.mean(abs(y_true-y_pred))
 
     return {"R2": r_squared, "RMSE": rmse, "MAE": mae}
 
@@ -169,22 +183,39 @@ def one_hot_encode(X, categorical_indices, drop_first=False):
     Returns:
         np.ndarray: Transformed array with one-hot encoded columns.
     """
+def one_hot_encode(X, categorical_indices, drop_first=False):
+    """
+    One-hot encode the categorical columns specified in categorical_indices. This function
+    supports string variables.
+
+    Args:
+        X (np.ndarray): 2D data array.
+        categorical_indices (list of int): Indices of columns to be one-hot encoded.
+        drop_first (bool): Whether to drop the first level of one-hot encoding to avoid multicollinearity.
+
+    Returns:
+        np.ndarray: Transformed array with one-hot encoded columns.
+    """
     X_transformed = X.copy()
+
+    # Process indices in reverse order to avoid messing up the column positions when inserting new columns.
     for index in sorted(categorical_indices, reverse=True):
-        # TODO: Extract the categorical column
-        categorical_column = None
+        # Extract the categorical column
+        categorical_column = X_transformed[:, index]
 
-        # TODO: Find the unique categories (works with strings)
-        unique_values = None
+        # Find the unique categories (works with strings)
+        unique_values = np.unique(categorical_column)
 
-        # TODO: Create a one-hot encoded matrix (np.array) for the current categorical column
-        one_hot = None
+        # Create a one-hot encoded matrix using broadcasting
+        # Each row gets a 1 in the column corresponding to its category.
+        one_hot = (categorical_column[:, None] == unique_values).astype(int)
 
         # Optionally drop the first level of one-hot encoding
         if drop_first:
             one_hot = one_hot[:, 1:]
 
-        # TODO: Delete the original categorical column from X_transformed and insert new one-hot encoded columns
-        X_transformed = None
+        # Delete the original categorical column from X_transformed
+        X_transformed = np.delete(X_transformed, index, axis=1)
+        X_transformed = np.hstack((X_transformed[:,:index], one_hot,X_transformed[:,index:]))
 
     return X_transformed
