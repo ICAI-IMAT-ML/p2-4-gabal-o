@@ -68,7 +68,7 @@ class LinearRegressor:
                 # Add a column of ones to X for the intercept term
         
         # Compute the coefficients using the normal equation
-        theta = np.linalg.inv(X.T @ X) @ X.T @ y
+        theta = np.linalg.inv(X.T @ X) @ (X.T @ y)
         
         # Store intercept and coefficients separately
         self.intercept = theta[0]
@@ -135,11 +135,10 @@ class LinearRegressor:
         # Paste your code from last week
         if self.coefficients is None or self.intercept is None:
             raise ValueError("Model is not yet fitted")
-        X = np.asarray(X)
         if np.ndim(X) == 1:
-            predictions = X*self.coefficients + self.intercept
+            predictions = self.coefficients*X + self.intercept
         else:
-            predictions = np.dot(X, self.coefficients) + self.intercept
+            predictions = X @ self.coefficients + self.intercept
         return predictions
 
 
