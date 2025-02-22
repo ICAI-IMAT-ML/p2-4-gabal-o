@@ -15,6 +15,8 @@ class LinearRegressor:
         self.intercept = None
         self.iter=[]
         self.MSE=[]
+        self.hist_coef=[]
+        self.hist_intercept=[]
     """
     This next "fit" function is a general function that either calls the *fit_multiple* code that
     you wrote last week, or calls a new method, called *fit_gradient_descent*, not implemented (yet)
@@ -118,6 +120,8 @@ class LinearRegressor:
                 mse = (1 / m) * np.sum(error ** 2)
                 self.iter.append(epoch)
                 self.MSE.append(mse)
+                self.hist_coef.append(self.coefficients)
+                self.hist_intercept.append(self.intercept)
                 print(f"Epoch {epoch}: MSE = {mse}")
 
     def predict(self, X):
@@ -208,3 +212,6 @@ def one_hot_encode(X, categorical_indices, drop_first=False):
         X_transformed = np.hstack((X_transformed[:,:index], one_hot,X_transformed[:,index:]))
 
     return X_transformed
+
+
+
