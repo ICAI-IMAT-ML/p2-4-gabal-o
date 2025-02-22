@@ -13,7 +13,8 @@ class LinearRegressor:
     def __init__(self):
         self.coefficients = None
         self.intercept = None
-
+        self.iter=[]
+        self.MSE=[]
     """
     This next "fit" function is a general function that either calls the *fit_multiple* code that
     you wrote last week, or calls a new method, called *fit_gradient_descent*, not implemented (yet)
@@ -115,6 +116,8 @@ class LinearRegressor:
             # Optionally, calculate and print the loss every 10 epochs.
             if epoch % 10 == 0:
                 mse = (1 / m) * np.sum(error ** 2)
+                self.iter.append(epoch)
+                self.MSE.append(mse)
                 print(f"Epoch {epoch}: MSE = {mse}")
 
     def predict(self, X):
@@ -169,19 +172,6 @@ def evaluate_regression(y_true, y_pred):
     return {"R2": r_squared, "RMSE": rmse, "MAE": mae}
 
 
-def one_hot_encode(X, categorical_indices, drop_first=False):
-    """
-    One-hot encode the categorical columns specified in categorical_indices. This function
-    shall support string variables.
-
-    Args:
-        X (np.ndarray): 2D data array.
-        categorical_indices (list of int): Indices of columns to be one-hot encoded.
-        drop_first (bool): Whether to drop the first level of one-hot encoding to avoid multicollinearity.
-
-    Returns:
-        np.ndarray: Transformed array with one-hot encoded columns.
-    """
 def one_hot_encode(X, categorical_indices, drop_first=False):
     """
     One-hot encode the categorical columns specified in categorical_indices. This function
